@@ -2,11 +2,15 @@ name: Deploy Award Voting to VPS
 
 on:
   push:
-    branches: [ "develop" ]   # change si besoin (ex: ["main","prod"])
+    branches: [ "develop" ]
     paths:
       - "server/**"
       - "client/**"
       - ".github/workflows/deploy.yml"
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -15,34 +19,40 @@ jobs:
       - name: Deploy via SSH to VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.VPS_IP }}
+          host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.SSH_KEY }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script_stop: true
           script: |
             set -e
 
-            # 1) Récupérer/mettre à jour le code
+            echo "==> Clonage propre du dépôt"
             cd ~
             rm -rf award-voting
             git clone -b ${{ github.ref_name }} https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} award-voting
             cd award-voting
 
-            # 2) Construire les images Docker (server + client)
-            docker build -t award_voting_server:latest -f server/Dockerfile ./server
-            docker build -t award_voting_client:latest -f client/Dockerfile ./client
+            echo "==> (Debug) Vérification de la structure"
+            ls -la
+            ls -la server || true
+            ls -la client || true
 
-            # 3) Arrêter les anciens conteneurs s'ils existent
+            echo "==> Build des images Docker (contexte = racine du repo)"
+            # IMPORTANT: contexte = ".", car les Dockerfile font COPY server/... et client/...
+            docker build -t award_voting_server:latest -f server/Dockerfile .
+            docker build -t award_voting_client:latest -f client/Dockerfile .
+
+            echo "==> Arrêt et suppression des anciens conteneurs (si présents)"
             docker stop award_voting_server || true
             docker rm   award_voting_server || true
             docker stop award_voting_client || true
             docker rm   award_voting_client || true
 
-            # 4) Réseau (si besoin pour communiquer entre conteneurs)
+            echo "==> Réseau Docker (si non existant)"
             docker network create award_net || true
 
-            # 5) Lancer le backend FastAPI
+            echo "==> Lancement du backend (FastAPI)"
             docker run -d \
               --name award_voting_server \
               --network award_net \
@@ -51,7 +61,7 @@ jobs:
               --restart=unless-stopped \
               award_voting_server:latest
 
-            # 6) Lancer le frontend (Nginx servant le build Vite)
+            echo "==> Lancement du frontend (Nginx servant le build Vite)"
             docker run -d \
               --name award_voting_client \
               --network award_net \
@@ -59,5 +69,5 @@ jobs:
               --restart=unless-stopped \
               award_voting_client:latest
 
-            # 7) Nettoyage (optionnel)
+            echo "==> Nettoyage d'images inutilisées"
             docker image prune -f || true

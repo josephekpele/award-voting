@@ -1,4 +1,3 @@
-# .dockerignore (à la racine)
 .git
 **/.venv
 **/node_modules

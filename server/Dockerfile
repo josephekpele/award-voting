@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 WORKDIR /app
 
-# chemins relatifs au CONTEXTE RACINE
+# Contexte = racine → on peut copier server/...
 COPY server/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
