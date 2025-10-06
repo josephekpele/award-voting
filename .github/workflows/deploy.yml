@@ -8,10 +8,6 @@ on:
       - "client/**"
       - ".github/workflows/deploy.yml"
 
-concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -19,40 +15,38 @@ jobs:
       - name: Deploy via SSH to VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT || 22 }}
+          host: ${{ secrets.VPS_HOST }}         # <-- DOIT exister
+          username: ${{ secrets.VPS_USER }}     # <-- DOIT exister
+          key: ${{ secrets.SSH_KEY }}       # <-- DOIT exister
+          port: ${{ secrets.VPS_PORT }}         # optionnel, sinon par défaut 22
           script_stop: true
+          command_timeout: 60m
           script: |
             set -e
-
-            echo "==> Clonage propre du dépôt"
             cd ~
             rm -rf award-voting
             git clone -b ${{ github.ref_name }} https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} award-voting
             cd award-voting
 
-            echo "==> (Debug) Vérification de la structure"
+            # Debug structure
             ls -la
             ls -la server || true
             ls -la client || true
 
-            echo "==> Build des images Docker (contexte = racine du repo)"
-            # IMPORTANT: contexte = ".", car les Dockerfile font COPY server/... et client/...
+            # Build (contexte = racine)
             docker build -t award_voting_server:latest -f server/Dockerfile .
             docker build -t award_voting_client:latest -f client/Dockerfile .
 
-            echo "==> Arrêt et suppression des anciens conteneurs (si présents)"
+            # Stop/remove anciens conteneurs
             docker stop award_voting_server || true
             docker rm   award_voting_server || true
             docker stop award_voting_client || true
             docker rm   award_voting_client || true
 
-            echo "==> Réseau Docker (si non existant)"
+            # Réseau Docker
             docker network create award_net || true
 
-            echo "==> Lancement du backend (FastAPI)"
+            # Backend
             docker run -d \
               --name award_voting_server \
               --network award_net \
@@ -61,7 +55,7 @@ jobs:
               --restart=unless-stopped \
               award_voting_server:latest
 
-            echo "==> Lancement du frontend (Nginx servant le build Vite)"
+            # Frontend
             docker run -d \
               --name award_voting_client \
               --network award_net \
@@ -69,5 +63,4 @@ jobs:
               --restart=unless-stopped \
               award_voting_client:latest
 
-            echo "==> Nettoyage d'images inutilisées"
             docker image prune -f || true
