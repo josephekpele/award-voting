@@ -1,0 +1,63 @@
+name: Deploy Award Voting to VPS
+
+on:
+  push:
+    branches: [ "develop" ]   # change si besoin (ex: ["main","prod"])
+    paths:
+      - "server/**"
+      - "client/**"
+      - ".github/workflows/deploy.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+
+            # 1) Récupérer/mettre à jour le code
+            cd ~
+            rm -rf award-voting
+            git clone -b ${{ github.ref_name }} https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} award-voting
+            cd award-voting
+
+            # 2) Construire les images Docker (server + client)
+            docker build -t award_voting_server:latest -f server/Dockerfile ./server
+            docker build -t award_voting_client:latest -f client/Dockerfile ./client
+
+            # 3) Arrêter les anciens conteneurs s'ils existent
+            docker stop award_voting_server || true
+            docker rm   award_voting_server || true
+            docker stop award_voting_client || true
+            docker rm   award_voting_client || true
+
+            # 4) Réseau (si besoin pour communiquer entre conteneurs)
+            docker network create award_net || true
+
+            # 5) Lancer le backend FastAPI
+            docker run -d \
+              --name award_voting_server \
+              --network award_net \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -p 8000:8000 \
+              --restart=unless-stopped \
+              award_voting_server:latest
+
+            # 6) Lancer le frontend (Nginx servant le build Vite)
+            docker run -d \
+              --name award_voting_client \
+              --network award_net \
+              -p 8080:80 \
+              --restart=unless-stopped \
+              award_voting_client:latest
+
+            # 7) Nettoyage (optionnel)
+            docker image prune -f || true
