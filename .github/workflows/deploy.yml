@@ -8,45 +8,66 @@ on:
       - "client/**"
       - ".github/workflows/deploy.yml"
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # décommente si tes secrets sont dans un "Environment" protégé
+    # environment: production
     steps:
+      - name: Checkout (for logs only)
+        uses: actions/checkout@v4
+
+      # ✅ Étape de sanity-check: on s'assure que les secrets existent AVANT l'SSH
+      - name: Assert required secrets
+        run: |
+          if [ -z "${{ secrets.VPS_HOST }}" ]; then echo "❌ Missing secret VPS_HOST"; exit 1; fi
+          if [ -z "${{ secrets.VPS_USER }}" ]; then echo "❌ Missing secret VPS_USER"; exit 1; fi
+          if [ -z "${{ secrets.VPS_SSH_KEY }}" ]; then echo "❌ Missing secret VPS_SSH_KEY"; exit 1; fi
+          echo "✅ Secrets present."
+
       - name: Deploy via SSH to VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.VPS_HOST }}         # <-- DOIT exister
-          username: ${{ secrets.VPS_USER }}     # <-- DOIT exister
-          key: ${{ secrets.SSH_KEY }}       # <-- DOIT exister
-          port: ${{ secrets.VPS_PORT }}         # optionnel, sinon par défaut 22
+          host: ${{ secrets.VPS_HOST }}       # ⬅️ OBLIGATOIRE
+          username: ${{ secrets.VPS_USER }}   # ⬅️ OBLIGATOIRE
+          key: ${{ secrets.SSH_KEY }}     # ⬅️ OBLIGATOIRE (clé privée entière BEGIN/END)
+          port: ${{ secrets.VPS_PORT || 22 }}
           script_stop: true
           command_timeout: 60m
           script: |
             set -e
+
+            echo "==> Clone frais du repo"
             cd ~
             rm -rf award-voting
-            git clone -b ${{ github.ref_name }} https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} award-voting
+            git clone -b ${{ github.ref_name }} \
+              https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} \
+              award-voting
             cd award-voting
 
-            # Debug structure
+            echo "==> Debug structure (doit lister server/requirements.txt)"
             ls -la
             ls -la server || true
             ls -la client || true
 
-            # Build (contexte = racine)
+            echo "==> Build images (contexte = racine du repo)"
             docker build -t award_voting_server:latest -f server/Dockerfile .
             docker build -t award_voting_client:latest -f client/Dockerfile .
 
-            # Stop/remove anciens conteneurs
+            echo "==> Stop & remove containers (si existent)"
             docker stop award_voting_server || true
             docker rm   award_voting_server || true
             docker stop award_voting_client || true
             docker rm   award_voting_client || true
 
-            # Réseau Docker
+            echo "==> Crée le réseau si besoin"
             docker network create award_net || true
 
-            # Backend
+            echo "==> Run backend (FastAPI sur 8000)"
             docker run -d \
               --name award_voting_server \
               --network award_net \
@@ -55,7 +76,7 @@ jobs:
               --restart=unless-stopped \
               award_voting_server:latest
 
-            # Frontend
+            echo "==> Run frontend (Nginx sur 8080)"
             docker run -d \
               --name award_voting_client \
               --network award_net \
@@ -63,4 +84,5 @@ jobs:
               --restart=unless-stopped \
               award_voting_client:latest
 
+            echo "==> Cleanup images"
             docker image prune -f || true
