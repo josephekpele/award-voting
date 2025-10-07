@@ -67,7 +67,7 @@ export default function VotePage() {
   return (
     <div>
       <div className="header">
-        <span className="badge">🏆 Award Voting</span>
+        <span className="badge">🏆 Ekklesia Impact Award 2025</span>
         <span className="notice">Vote pour <strong>{c.name}</strong></span>
         <span style={{marginLeft:'auto'}}><Link className="notice" to="/">← Tous les candidats</Link></span>
       </div>

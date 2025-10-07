@@ -1,4 +1,4 @@
-# Award Voting API (FastAPI)
+# Ekklesia Impact Award 2025 API (FastAPI)
 
 
 ## Install & Run

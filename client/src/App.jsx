@@ -27,7 +27,7 @@ function Home() {
   return (
     <div>
       <div className="header">
-        <span className="badge">🏆 Award Voting</span>
+        <span className="badge">🏆 Ekklesia Impact Award 2025</span>
         <span className="notice">Partagez le lien d’un candidat pour voter</span>
       </div>
       <div className="container">
@@ -38,6 +38,9 @@ function Home() {
           ))}
         </div>
       </div>
+      <footer style={{marginTop:32, textAlign:'center', color:'#888', fontSize:'0.9em'}}>
+        Developed by J.E.A
+      </footer>
     </div>
   )
 }

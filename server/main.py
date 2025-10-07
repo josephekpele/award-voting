@@ -10,7 +10,7 @@ from . import models, schemas
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Award Voting API", version="1.0.0")
+app = FastAPI(title="Ekklesia Impact Award 2025 API", version="1.0.0")
 
 origins = [
     "http://localhost:5173",
@@ -94,17 +94,24 @@ def vote(slug: str, request: Request, db: Session = Depends(get_db)):
     ip = request.headers.get("x-forwarded-for", request.client.host) or "unknown"
     ua = request.headers.get("user-agent", "unknown")[:300]
 
+    # Vérification explicite
+    existing = db.query(models.VoteLog).filter_by(candidate_id=c.id, ip=ip, user_agent=ua).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="Vous avez déjà voté pour ce candidat depuis cet appareil.")
+
     log = models.VoteLog(candidate_id=c.id, ip=ip, user_agent=ua)
     db.add(log)
+
     try:
         c.votes += 1
         db.add(c)
         db.commit()
         db.refresh(c)
-    except IntegrityError:
+    except Exception:
         db.rollback()
-        # Duplicate vote from same IP for this candidate
-        raise HTTPException(status_code=409, detail="Vous avez déjà voté pour ce candidat depuis cet appareil.")
+        raise HTTPException(status_code=500, detail="Erreur lors de l’enregistrement du vote")
+
+    return c
 
     # Broadcast fresh scoreboard
     data = [schemas.CandidateOut.model_validate(row).model_dump() for row in serialize_all_candidates(db)]

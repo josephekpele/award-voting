@@ -3,15 +3,18 @@ import { vote } from './api'
 
 export default function CandidateCard({ c, onVoted }) {
   const [loading, setLoading] = React.useState(false)
-  const votedKey = `voted:${c.slug}`
+  const votedKey = 'voted:once' // clé unique pour tout vote
   const already = typeof window !== 'undefined' && localStorage.getItem(votedKey)
 
   const onClick = async () => {
-    if (already) return
+    if (already) {
+      alert("Vous avez déjà voté pour un candidat. Un seul vote est autorisé par appareil.")
+      return
+    }
     setLoading(true)
     try {
       await vote(c.slug)
-      localStorage.setItem(votedKey, '1')
+      localStorage.setItem(votedKey, '1') // on enregistre le vote unique
       onVoted?.()
     } catch (e) {
       alert(e.message)
