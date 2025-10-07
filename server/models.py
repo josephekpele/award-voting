@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint, Text
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from .db import Base
 
@@ -29,5 +29,16 @@ class VoteLog(Base):
     candidate: Mapped[Candidate] = relationship("Candidate", back_populates="logs")
 
     __table_args__ = (
-        UniqueConstraint("candidate_id", "ip", name="uq_candidate_ip"),
+        UniqueConstraint('candidate_id', 'ip', 'user_agent', name='uq_candidate_ip_ua'),
     )
+    
+class DuplicateVoteAttempt(Base):
+    __tablename__ = "duplicate_vote_attempts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidates.id"))
+    ip = Column(String(100))
+    user_agent = Column(Text)
+    attempted_at = Column(DateTime, default=datetime.utcnow)
+
+    candidate = relationship("Candidate")

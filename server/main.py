@@ -94,31 +94,33 @@ def vote(slug: str, request: Request, db: Session = Depends(get_db)):
     ip = request.headers.get("x-forwarded-for", request.client.host) or "unknown"
     ua = request.headers.get("user-agent", "unknown")[:300]
 
-    # Vérification explicite
-    existing = db.query(models.VoteLog).filter_by(candidate_id=c.id, ip=ip, user_agent=ua).first()
-    if existing:
-        raise HTTPException(status_code=409, detail="Vous avez déjà voté pour ce candidat depuis cet appareil.")
-
     log = models.VoteLog(candidate_id=c.id, ip=ip, user_agent=ua)
     db.add(log)
-
     try:
         c.votes += 1
         db.add(c)
         db.commit()
-        db.refresh(c)
-    except Exception as e:
+    except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Erreur lors du vote: {str(e)}")
+        duplicate = models.DuplicateVoteAttempt(
+            candidate_id=c.id,
+            ip=ip,
+            user_agent=ua,
+        )
+        db.add(duplicate)
+        db.commit()
 
-    return c
-
-    # Broadcast fresh scoreboard
-    data = [schemas.CandidateOut.model_validate(row).model_dump() for row in serialize_all_candidates(db)]
-    import anyio
-    anyio.from_thread.run(manager.broadcast, {"type": "scoreboard", "payload": data})
-
-    return schemas.VoteResponse(ok=True, message="Vote counted!", candidate=c)
+        raise HTTPException(status_code=409, detail="Vous avez déjà voté pour ce candidat depuis cet appareil.")
+    
+    return {
+        "ok": True,
+        "message": "Vote enregistré avec succès.",
+        "candidate": c
+    }
+    
+@app.get("/api/duplicates", response_model=list[schemas.DuplicateVoteSchema])
+def get_duplicate_votes(db: Session = Depends(get_db)):
+    return db.query(models.DuplicateVoteAttempt).order_by(models.DuplicateVoteAttempt.attempted_at.desc()).all()
 
 @app.websocket("/ws")
 async def ws_endpoint(websocket: WebSocket, db: Session = Depends(get_db)):
