@@ -107,9 +107,9 @@ def vote(slug: str, request: Request, db: Session = Depends(get_db)):
         db.add(c)
         db.commit()
         db.refresh(c)
-    except Exception:
+    except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Erreur lors de l’enregistrement du vote")
+        raise HTTPException(status_code=500, detail=f"Erreur lors du vote: {str(e)}")
 
     return c
 
