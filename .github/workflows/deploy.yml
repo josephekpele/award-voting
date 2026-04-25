@@ -86,12 +86,12 @@ jobs:
             echo "==> Crée le réseau si besoin"
             docker network create award_net || true
 
-            echo "==> Run backend (FastAPI sur 8000)"
+            echo "==> Run backend (FastAPI sur 8003)"
             docker run -d \
               --name award_voting_server \
               --network award_net \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-              -p 8002:8002 \
+              -p 8003:8003 \
               --restart=unless-stopped \
               award_voting_server:latest
 
