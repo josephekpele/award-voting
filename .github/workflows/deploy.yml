@@ -24,10 +24,29 @@ jobs:
       # ✅ Étape de sanity-check: on s'assure que les secrets existent AVANT l'SSH
       - name: Assert required secrets
         run: |
-          if [ -z "${{ secrets.VPS_IP }}" ]; then echo "❌ Missing secret VPS_HOST"; exit 1; fi
+          if [ -z "${{ secrets.VPS_IP }}" ]; then echo "❌ Missing secret VPS_IP"; exit 1; fi
           if [ -z "${{ secrets.VPS_USER }}" ]; then echo "❌ Missing secret VPS_USER"; exit 1; fi
-          if [ -z "${{ secrets.SSH_KEY }}" ]; then echo "❌ Missing secret VPS_SSH_KEY"; exit 1; fi
+          if [ -z "${{ secrets.SSH_KEY }}" ]; then echo "❌ Missing secret SSH_KEY"; exit 1; fi
           echo "✅ Secrets present."
+
+      # 🔍 Debug : vérifie que la clé a une taille cohérente (sans jamais l'afficher)
+      - name: Validate SSH key format
+        run: |
+          KEY_LEN=$(echo '${{ secrets.SSH_KEY }}' | wc -c)
+          echo "🔑 SSH_KEY length: $KEY_LEN chars"
+          if [ "$KEY_LEN" -lt 100 ]; then
+            echo "❌ SSH_KEY seems too short ($KEY_LEN chars). Did you paste the full private key?"
+            exit 1
+          fi
+          if ! echo '${{ secrets.SSH_KEY }}' | grep -q "BEGIN.*PRIVATE KEY"; then
+            echo "❌ SSH_KEY does not contain a valid PEM header (-----BEGIN ... PRIVATE KEY-----)"
+            exit 1
+          fi
+          if ! echo '${{ secrets.SSH_KEY }}' | grep -q "END.*PRIVATE KEY"; then
+            echo "❌ SSH_KEY does not contain a valid PEM footer (-----END ... PRIVATE KEY-----)"
+            exit 1
+          fi
+          echo "✅ SSH_KEY looks well-formed."
 
       - name: Deploy via SSH to VPS
         uses: appleboy/ssh-action@v1.2.0
