@@ -3,21 +3,31 @@ import { vote } from './api'
 
 export default function CandidateCard({ c, onVoted }) {
   const [loading, setLoading] = React.useState(false)
-  const votedKey = 'voted:once' // clé unique pour tout vote
+  const votedKey = 'award_already_voted'
   const already = typeof window !== 'undefined' && localStorage.getItem(votedKey)
 
+
   const onClick = async () => {
-    if (already) {
-      alert("Vous avez déjà voté pour un candidat. Un seul vote est autorisé par appareil.")
+    if (localStorage.getItem(votedKey)) {
+      alert("Vous avez déjà voté. Un seul vote est autorisé par appareil.")
       return
     }
+
     setLoading(true)
     try {
-      await vote(c.slug)
-      localStorage.setItem(votedKey, '1') // on enregistre le vote unique
+      await vote(c.slug) // Appel API backend
+      localStorage.setItem(votedKey, '1')
       onVoted?.()
+      alert("Merci pour votre vote.")
     } catch (e) {
-      alert(e.message)
+      // 💥 Afficher l’erreur retournée par le backend
+      const errorMessage = e?.response?.data?.detail || e.message || "Erreur inconnue"
+      alert(errorMessage)
+
+      // 🔒 Sécurité : bloquer l'appareil côté frontend si le backend a rejeté le vote
+      if (e?.response?.status === 409) {
+        localStorage.setItem(votedKey, '1')
+      }
     } finally {
       setLoading(false)
     }

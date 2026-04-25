@@ -1,4 +1,5 @@
-const API_BASE = 'https://awards-api.tabledesrois.site'
+// const API_BASE = 'https://awards-api.tabledesrois.site'
+const API_BASE = 'http://localhost:8000'
 
 export async function fetchCandidates() {
   const res = await fetch(`${API_BASE}/api/candidates`)
@@ -17,6 +18,19 @@ export async function vote(slug) {
   if (!res.ok) {
     const msg = await res.text()
     throw new Error(msg || 'Vote failed')
+  }
+  return res.json()
+}
+
+export async function payAndVote(slug, paymentData) {
+  const res = await fetch(`${API_BASE}/api/candidates/${slug}/pay`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(paymentData)
+  })
+  if (!res.ok) {
+    const error = await res.json()
+    throw new Error(error.detail || 'Payment failed')
   }
   return res.json()
 }
