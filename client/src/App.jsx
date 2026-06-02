@@ -6,32 +6,11 @@ import PaymentPage from './PaymentPage'
 import Galerie from './Galerie'
 import Inscription from './Inscription'
 import Contact from './Contact'
-import { fetchCandidates } from './api'
-import './styles.css'
 
-const podium = [
-  {
-    rank: 2,
-    name: "Jean-Paul Kamga",
-    role: "Designer d'Espace",
-    votes: '42,109 votes',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDI6jCsdCNl7TW_pPZFQOk-diqZejBoEXhrRv-qjfZWRjMiwkkJJGFzT_HWFlxT1_w7pb-180MyGozMoEDvV6_8U_orkmHFBMxSOAQuZBs4mmEP9QiGE1ZsKCYvE66wAYeNsB_DY98VClhenWr_GgYBXJfm60tUEu4nsN-rdK91t-4fyHE36Xe9YwB7ZmOy6KFKfkKh6qermKQKsfbLHih3sZb_8mLkGmE2WvSztKoHiWQQkPK3MGd88AXqtjYMkkBtjhPbIXxdD2je'
-  },
-  {
-    rank: 1,
-    name: "Grace Moudio",
-    role: "Artiste Textile",
-    votes: '58,230 votes',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDgAviyVAd3pqx0pAoNQRFxc6Vtlh75t46mJtdMfoL91rWYD1PxJ1mTHYyWXq0X0H7glx49tJiGEtCm8BVIXNmIHmAg_lx4Hp7FSi_-6LVy1vEjr6owIdqaCe6nQCC2sGlTaNNAzXlvEhJIeJTjBz4J7BV3gFpy5srjfG8ylQcZdm3ym1p53VBHcZlF5zF2FlagM-s3RfNdPdJOuAjPJAHIoWocMrOzoXcGdkO99-3ce2z1QNnywG-wG_M8cJIS2KEhz-d-a5mF0x0w'
-  },
-  {
-    rank: 3,
-    name: "Emmanuel Tchuinte",
-    role: "Photographe",
-    votes: '28,153 votes',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDgAviyVAd3pqx0pAoNQRFxc6Vtlh75t46mJtdMfoL91rWYD1PxJ1mTHYyWXq0X0H7glx49tJiGEtCm8BVIXNmIHmAg_lx4Hp7FSi_-6LVy1vEjr6owIdqaCe6nQCC2sGlTaNNAzXlvEhJIeJTjBz4J7BV3gFpy5srjfG8ylQcZdm3ym1p53VBHcZlF5zF2FlagM-s3RfNdPdJOuAjPJAHIoWocMrOzoXcGdkO99-3ce2z1QNnywG-wG_M8cJIS2KEhz-d-a5mF0x0w'
-  }
-]
+// API base (doit matcher api.js)
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000'
+
+import './styles.css'
 
 const highlights = [
   { icon: 'payments', title: 'Soutien Premium', description: 'Chaque vote est à 25F CFA. Votre contribution finance directement les prix d\'impact pour les gagnants.' },
@@ -43,20 +22,16 @@ const features = [
   { icon: 'speed', title: 'Instantané', subtitle: 'Mobile Money' }
 ]
 
-const candidates = [
-  { slug: 'sarah-ndem', name: 'Sarah Ndem', label: 'Styliste', votes: '24,902 votes', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAigCw3JJpeFExRrJdjcKLY22f8Pg0vpIyaG5i002Hmu0dmKGhw2cWM1J1g0bY0ss0AznoOvwI1to1yg7_brzt3NkVW8Oq_tqHwfNIn9z12fn8MaWgh3JNGTXFCIqlorFTzDE-j75FgFVYbsRgf_jaY4mKIZms7sqHnJqq2rM49Slno_508bMz2Cm-S2Jp8pZ53MAhsSRXGJzcmS2SM2mxUsbGHbFt-s6eNgIfnE_j0jNJDXUj5NZWzcj5LWkJ-rLbxnwyMkI7GxudH' },
-  { slug: 'michel-etoo', name: 'Michel Eto\'o', label: 'Cinéaste', votes: '19,455 votes', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAynZstf_9KuU9rGkuZn-vtoBlh65RbvFnqtQpG0MDJhRlbRKi6sLbdyZFvQZ3u7k0FArCpgIfrOdlmKb0zZObepVULwimO2DX_DlpHltF1e50_eCS63OMHdSbOaz8M6F56BaVtMnIsQXBKXKHb4EqWAwlQSrbHlL9ZeakK74vfDoMu_hZrmgc-FeR_yt-M6kPn3gFN8aapyT8WwT4nAEJpzqZft4yLJXC_AeTqi9bEvhqZCrQ0ZF6_YqyB7o3YtXfC0-uCVmNJFW3j' },
-  { slug: 'anne-marie', name: 'Anne Marie', label: 'Leadership', votes: '15,221 votes', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC9E5aGDzTuHoKa6qPz8kfCxeWK4Qor9G-9FKdm9NccawvU2fUCNBNHBGfj0YUT4hOqINdjQ13XMDZYaZuqBWMGhoQcrH4RKwjiJY-o7ykjsNu7AZ1doEWZNjhdW7UHRr_mf6uBVSS8mjHzXbLXKXAxAGwvRpUJflRqlnHDohyuOtZZi28QDIZuWgvpqYY04f6J7prPz6_DQLkNn59Mu74QKABalyV858hbk-nXQfNjI0MVOPeU5IF0tnOLyu4TaDN-rb2rJhLoyMQ9' },
-  { slug: 'cedric-ngando', name: 'Michel Eklou', label: 'Musique', votes: '12,880 votes', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDXJSwdqOT8hESwNkXM809qVjeXw_1qr9lf3u7MjHvIUJH7aWB7A1oR4pozWfw7F8tUXjiOK8C1CKBzHjcic5BpmCNO0z1ENI-_3dpZFDhvoFWXHdLSgBWseEtG_7ZrPHpW8h6RKyYhq49Aa_x0mVpSI7h4s1ZPXkOZ611dnIbIdL60qMCBmTbCjQDwqNUE9moxylcmqa0LmI9c7J-grJbSnY9Q9S9DMol-D8LDhGzhJ02458BenTTfAJpRtq24JNEXVBDIpTYMNZ2' }
-]
-
 function Home() {
   const { section } = useParams()
 
-  const [candidateList, setCandidateList] = React.useState(candidates)
+  const [candidateList, setCandidateList] = React.useState([])
+  const [awardStats, setAwardStats] = React.useState({ total_votes: 0, vote_end_at: null })
+  const [timeRemaining, setTimeRemaining] = React.useState('')
 
   React.useEffect(() => {
     if (!section) return
+
     const target = document.getElementById(section)
     if (!target) return
 
@@ -66,7 +41,17 @@ function Home() {
 
   React.useEffect(() => {
     let active = true
-    fetchCandidates()
+
+    const currentYear = new Date().getFullYear()
+    const pageSize = 15
+    
+    // Page d'accueil : on affiche uniquement les candidats de l'année en cours.
+    fetch(`${API_BASE}/api/candidates?year=${currentYear}&page=1&page_size=${pageSize}`)
+
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch candidates')
+        return res.json()
+      })
       .then((data) => {
         if (active && Array.isArray(data) && data.length > 0) {
           setCandidateList(data)
@@ -75,8 +60,66 @@ function Home() {
       .catch(() => {
         // keep default placeholder candidates if the API is unavailable
       })
+
     return () => { active = false }
   }, [])
+
+  React.useEffect(() => {
+    let active = true
+    const currentYear = new Date().getFullYear()
+
+    // Charger les stats du vote
+    fetch(`${API_BASE}/api/award-stats?year=${currentYear}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch award stats')
+        return res.json()
+      })
+      .then((data) => {
+        if (active) {
+          setAwardStats(data)
+        }
+      })
+      .catch(() => {
+        // keep default stats if the API is unavailable
+      })
+
+    return () => { active = false }
+  }, [])
+
+  React.useEffect(() => {
+    if (!awardStats.vote_end_at) return
+
+    const updateCountdown = () => {
+      const endTime = new Date(awardStats.vote_end_at).getTime()
+      const now = new Date().getTime()
+      const diff = endTime - now
+
+      if (diff <= 0) {
+        setTimeRemaining('Clôturé')
+        return
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+      // Format: Xj HH:MM:SS when days > 0, otherwise HH:MM:SS
+      const hh = String(hours).padStart(2, '0')
+      const mm = String(minutes).padStart(2, '0')
+      const ss = String(seconds).padStart(2, '0')
+
+      setTimeRemaining(
+        days > 0 ? `${days}j ${hh}:${mm}:${ss}` : `${hh}:${mm}:${ss}`
+      )
+    }
+
+    updateCountdown() // Initial call
+    const interval = setInterval(updateCountdown, 1000)
+
+    return () => clearInterval(interval)
+  }, [awardStats.vote_end_at])
+
 
   return (
     <div className="landing-page">
@@ -84,7 +127,7 @@ function Home() {
         <section className="hero">
           <div className="hero-overlay" />
           <div className="hero-content">
-            <span className="hero-tag">The 2024 Digital Gala</span>
+            <span className="hero-tag">The 2026 Style Award</span>
             <h1>Glorifier Dieu par <span>l'Excellence</span></h1>
             <p>"Honorer le talent. Inspirer une génération. Glorifier Dieu."</p>
             <Link className="hero-button" to="/candidates">
@@ -102,20 +145,20 @@ function Home() {
             <div className="score-cards">
               <div>
                 <span>Total des Votes</span>
-                <strong>128,492</strong>
+                <strong>{awardStats.total_votes.toLocaleString('fr-FR')}</strong>
               </div>
               <div>
                 <span>Clôture dans</span>
-                <strong>14:02:45</strong>
+                <strong>{timeRemaining || '—'}</strong>
               </div>
             </div>
           </div>
 
           <div className="podium-grid">
-            {podium.map((item) => (
+            {candidateList.slice(0, 3).map((item) => (
               <div key={item.rank} className={`podium-card rank-${item.rank}`}>
                 <div className="podium-image">
-                  <img src={item.image} alt={item.name} />
+                  <img src={`${API_BASE}${item.photo_url}`} alt={item.name} />
                   <div className="rank-badge">{item.rank}</div>
                   {item.rank === 1 && <div className="leader-badge">Leader</div>}
                 </div>
@@ -166,7 +209,7 @@ function Home() {
               {candidateList.map((candidate) => (
                 <div key={candidate.slug || candidate.name} className="candidate-card">
                   <div className="candidate-image">
-                    <img src={candidate.photo_url || candidate.image} alt={candidate.name} />
+                    <img src={`${API_BASE}${candidate.photo_url}`} alt={candidate.name} />
                     <div className="candidate-label">{candidate.label || candidate.role || 'Candidat N°'} {candidate.number}</div>
                   </div>
                   <div className="candidate-body">

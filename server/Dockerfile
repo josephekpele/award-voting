@@ -7,5 +7,9 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY server /app/server
 
-EXPOSE 8002
-CMD ["uvicorn","server.main:app","--host","0.0.0.0","--port","8003"]
+# Copier le script d'entrypoint et le rendre exécutable
+COPY server/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+EXPOSE 8003
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { API_ENDPOINTS } from './config';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -48,13 +49,23 @@ function Inscription() {
     if (photo) submitData.append('photo', photo);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1800));
-      setMessage('Inscription soumise avec succès ! Merci.');
-      setFormData({ nom: '', prenom: '', sexe: '', whatsapp: '', biographie: '', eglise: '' });
-      setPhoto(null);
-      setPhotoPreview(null);
+      const response = await fetch(API_ENDPOINTS.inscription, {
+        method: 'POST',
+        body: submitData,
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.ok) {
+        setMessage('✅ Inscription soumise avec succès ! Merci.');
+        setFormData({ nom: '', prenom: '', sexe: '', whatsapp: '', biographie: '', eglise: '' });
+        setPhoto(null);
+        setPhotoPreview(null);
+      } else {
+        setMessage(`❌ ${data.message || 'Erreur lors de l\'inscription'}`);
+      }
     } catch (error) {
-      setMessage('Erreur lors de l\'inscription. Réessayez.');
+      setMessage(`❌ Erreur de connexion: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -66,13 +77,13 @@ function Inscription() {
         <motion.section initial="hidden" animate="visible" variants={fadeUp} className="mb-10 text-center">
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-[#f2ca50]/20 bg-surface-container/70 px-4 py-2 text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-            2026 Nominations Open
+            Nominations 2026 Ouvertes
           </div>
           <h1 className="mt-6 text-4xl font-headline font-extrabold tracking-tight text-on-surface sm:text-5xl">
-            Candidate <span className="bg-[linear-gradient(135deg,#f2ca50_0%,#d4af37_100%)] bg-clip-text text-transparent">Registration</span>
+            Inscription des <span className="bg-[linear-gradient(135deg,#f2ca50_0%,#d4af37_100%)] bg-clip-text text-transparent">Candidats</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-on-surface-variant sm:text-base">
-            Join the prestigious circle of nominees for the Ekklesia Impact Award. Share your legacy with the world.
+            Rejoignez le cercle prestigieux des candidats pour le Prix Ekklesia Impact. Partagez votre héritage avec le monde.
           </p>
         </motion.section>
 
@@ -80,9 +91,9 @@ function Inscription() {
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <motion.div variants={fadeUp} className="space-y-6">
               <div className="rounded-[2rem] border border-[#f2ca50]/10 bg-surface-container-low p-6 shadow-2xl shadow-[#f2ca50]/5">
-                <h2 className="text-xl font-headline font-bold text-on-surface">The Pinnacle of Faith & Impact</h2>
+                <h2 className="text-xl font-headline font-bold text-on-surface">L'Apogée de la Foi et de l'Impact</h2>
                 <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
-                  The Ekklesia Impact Award celebrates divine service and societal transformation. Share your story of mission, leadership, and community impact.
+                  Le Prix Ekklesia Impact célèbre le service divin et la transformation sociale. Partagez votre histoire de mission, de leadership et d'impact communautaire.
                 </p>
               </div>
 
@@ -92,8 +103,8 @@ function Inscription() {
                     <span className="material-symbols-outlined">workspace_premium</span>
                   </div>
                   <div>
-                    <h4 className="font-headline text-base font-bold text-on-surface">Global Recognition</h4>
-                    <p className="text-sm text-on-surface-variant/80">Join the ranks of international leaders and impactful ministries.</p>
+                    <h4 className="font-headline text-base font-bold text-on-surface">Reconnaissance Mondiale</h4>
+                    <p className="text-sm text-on-surface-variant/80">Rejoignez le rang des leaders internationaux et des ministères impactants.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -101,18 +112,18 @@ function Inscription() {
                     <span className="material-symbols-outlined">campaign</span>
                   </div>
                   <div>
-                    <h4 className="font-headline text-base font-bold text-on-surface">Platform for Growth</h4>
-                    <p className="text-sm text-on-surface-variant/80">Expand your reach and mission through our editorial network.</p>
+                    <h4 className="font-headline text-base font-bold text-on-surface">Plateforme de Croissance</h4>
+                    <p className="text-sm text-on-surface-variant/80">Élargissez votre portée et votre mission grâce à notre réseau éditorial.</p>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-[2rem] bg-surface-container p-6 border border-[#99907c]/10">
-                <h3 className="font-headline text-xl font-bold text-primary">Submission Instructions</h3>
+                <h3 className="font-headline text-xl font-bold text-primary">Instructions de Soumission</h3>
                 <ul className="mt-4 space-y-3 text-sm text-on-surface-variant">
-                  <li className="flex gap-3"><span className="text-primary font-bold">01.</span> Ensure all church affiliations are verifiable.</li>
-                  <li className="flex gap-3"><span className="text-primary font-bold">02.</span> Biography should focus on measurable impact and spiritual legacy.</li>
-                  <li className="flex gap-3"><span className="text-primary font-bold">03.</span> High-resolution professional portrait (4MB max) is required.</li>
+                  <li className="flex gap-3"><span className="text-primary font-bold">01.</span> Assurez-vous que toutes les affiliations ecclésiales sont vérifiables.</li>
+                  <li className="flex gap-3"><span className="text-primary font-bold">02.</span> La biographie doit se concentrer sur l'impact mesurable et l'héritage spirituel.</li>
+                  <li className="flex gap-3"><span className="text-primary font-bold">03.</span> Un portrait professionnel haute résolution (4 Mo maximum) est requis.</li>
                 </ul>
               </div>
             </motion.div>
@@ -128,25 +139,25 @@ function Inscription() {
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">First Name</label>
+                    <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Prénom</label>
                     <input
                       className="w-full bg-surface-container-highest border-0 border-b-2 border-outline-variant/30 px-0 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-0"
                       name="prenom"
                       value={formData.prenom}
                       onChange={handleInputChange}
-                      placeholder="Enter first name"
+                      placeholder="Entrez votre prénom"
                       type="text"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Surname</label>
+                    <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Nom de Famille</label>
                     <input
                       className="w-full bg-surface-container-highest border-0 border-b-2 border-outline-variant/30 px-0 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-0"
                       name="nom"
                       value={formData.nom}
                       onChange={handleInputChange}
-                      placeholder="Enter last name"
+                      placeholder="Entrez votre nom de famille"
                       type="text"
                       required
                     />
@@ -155,7 +166,7 @@ function Inscription() {
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Gender</label>
+                    <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Sexe</label>
                     <select
                       className="w-full bg-surface-container-highest border-0 border-b-2 border-outline-variant/30 px-0 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-0 appearance-none"
                       name="sexe"
@@ -163,22 +174,21 @@ function Inscription() {
                       onChange={handleInputChange}
                       required
                     >
-                      <option value="">Select gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
+                      <option value="">Sélectionnez votre sexe</option>
+                      <option value="male">Homme</option>
+                      <option value="female">Femme</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">WhatsApp Number</label>
+                    <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Numéro WhatsApp</label>
                     <div className="flex items-center gap-3 bg-surface-container-highest border-b-2 border-outline-variant/30 px-3">
-                      <span className="text-on-surface-variant text-sm">+</span>
+                      <span className="text-on-surface-variant text-sm">228</span>
                       <input
                         className="w-full bg-transparent border-0 py-3 text-on-surface outline-none transition placeholder:text-on-surface-variant/30"
                         name="whatsapp"
                         value={formData.whatsapp}
                         onChange={handleInputChange}
-                        placeholder="1 234 567 890"
+                        placeholder="90000000"
                         type="tel"
                         required
                       />
@@ -187,50 +197,50 @@ function Inscription() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Church of Origin</label>
+                  <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Église d'Origine</label>
                   <input
                     className="w-full bg-surface-container-highest border-0 border-b-2 border-outline-variant/30 px-0 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-0"
                     name="eglise"
                     value={formData.eglise}
                     onChange={handleInputChange}
-                    placeholder="Ministry or Parish name"
+                    placeholder="Nom du ministère ou de la paroisse"
                     type="text"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Biography</label>
+                  <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Biographie</label>
                   <textarea
                     className="w-full bg-surface-container-highest border-0 border-b-2 border-outline-variant/30 px-0 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-0 resize-none leading-relaxed"
                     name="biographie"
                     value={formData.biographie}
                     onChange={handleInputChange}
-                    placeholder="Describe your journey and impact..."
+                    placeholder="Décrivez votre parcours et votre impact..."
                     rows="5"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Candidate Portrait</label>
+                  <label className="block text-[0.7rem] uppercase tracking-[0.2em] text-on-surface-variant">Portrait du Candidat</label>
                   <div className="grid gap-6 md:grid-cols-12 items-center">
                     <div className="md:col-span-4 aspect-square overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container relative group cursor-pointer" onClick={triggerPhotoUpload}>
                       <img
                         className="h-full w-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-110"
                         src={photoPreview || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80'}
-                        alt="Portrait preview"
+                        alt="Aperçu du portrait"
                       />
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/40 transition-colors group-hover:bg-background/20">
                         <span className="material-symbols-outlined text-primary mb-1">photo_camera</span>
-                        <span className="text-[0.65rem] uppercase tracking-[0.15em] text-white">Preview</span>
+                        <span className="text-[0.65rem] uppercase tracking-[0.15em] text-white">Aperçu</span>
                       </div>
                     </div>
                     <div className="md:col-span-8">
                       <div className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-outline-variant/30 bg-surface-container-highest p-8 text-center transition-colors hover:border-primary/50" onClick={triggerPhotoUpload}>
                         <span className="material-symbols-outlined text-3xl text-on-surface-variant">cloud_upload</span>
                         <div>
-                          <p className="text-sm font-semibold text-on-surface">Click to upload or drag and drop</p>
-                          <p className="mt-1 text-xs text-on-surface-variant">RAW, JPG or PNG (MAX. 800x800px)</p>
+                          <p className="text-sm font-semibold text-on-surface">Cliquez pour télécharger ou glissez-déposez</p>
+                          <p className="mt-1 text-xs text-on-surface-variant">RAW, JPG ou PNG (MAX. 800x800px)</p>
                         </div>
                       </div>
                       <input
@@ -250,10 +260,10 @@ function Inscription() {
                     type="submit"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Envoi...' : 'Submit Nomination'}
+                    {isSubmitting ? 'Envoi...' : 'Soumettre la Nomination'}
                   </button>
                   <p className="mt-6 px-4 text-center text-[0.7rem] text-on-surface-variant/60 leading-relaxed">
-                    By submitting, you agree to the Ekklesia Impact Award Terms of Participation and Privacy Policy.
+                    En soumettant, vous acceptez les Conditions de Participation et la Politique de Confidentialité du Prix Ekklesia Impact.
                   </p>
                 </div>
               </div>

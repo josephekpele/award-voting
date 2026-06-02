@@ -14,12 +14,19 @@ class Candidate(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     number: Mapped[int] = mapped_column(Integer, nullable=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
+    prenom: Mapped[str] = mapped_column(String(120), nullable=True)
+    sexe: Mapped[str] = mapped_column(String(20), nullable=True)  # male, female
+    whatsapp: Mapped[str] = mapped_column(String(20), nullable=True)
+    eglise: Mapped[str] = mapped_column(String(255), nullable=True)
+    biographie: Mapped[str] = mapped_column(Text, nullable=True)
     photo_url: Mapped[str] = mapped_column(String(500), nullable=True)
     slug: Mapped[str] = mapped_column(String(140), unique=True, index=True)
     votes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    year: Mapped[int] = mapped_column(Integer, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     logs: Mapped[list["VoteLog"]] = relationship("VoteLog", back_populates="candidate")
+
 
 
 class VoteLog(Base):
@@ -65,3 +72,16 @@ class Payment(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     candidate: Mapped[Candidate] = relationship("Candidate")
+
+
+class GalleryImage(Base):
+    __tablename__ = "gallery_images"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    description: Mapped[str] = mapped_column(String(500), nullable=True)
+    is_winner: Mapped[bool] = mapped_column(Integer, default=0, nullable=False)  # 0: gallery, 1: winner/laureat
+    year: Mapped[int] = mapped_column(Integer, nullable=True)
+    category: Mapped[str] = mapped_column(String(100), nullable=True)
+    candidate_name: Mapped[str] = mapped_column(String(200), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
