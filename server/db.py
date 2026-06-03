@@ -1,6 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from pydantic_settings import BaseSettings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     # <- IMPORTANT: +psycopg et localhost
@@ -8,6 +11,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://joseph:josephEK99@172.17.0.1:5432/award_voting"
 
 settings = Settings()
+
+# Log the DATABASE_URL being used
+logger.info(f"🔌 Connecting to database: {settings.DATABASE_URL}")
 
 engine = create_engine(
     settings.DATABASE_URL,
