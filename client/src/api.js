@@ -1,19 +1,20 @@
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000'
+import { API_ENDPOINTS } from './config';
+
 
 export async function fetchCandidates() {
-  const res = await fetch(`${API_BASE}/api/candidates`)
+  const res = await fetch(`${API_ENDPOINTS}/api/candidates`)
   if (!res.ok) throw new Error('Failed to fetch candidates')
   return res.json()
 }
 
 export async function fetchCandidate(slug) {
-  const res = await fetch(`${API_BASE}/api/candidates/${slug}`)
+  const res = await fetch(`${API_ENDPOINTS}/api/candidates/${slug}`)
   if (!res.ok) throw new Error('Candidate not found')
   return res.json()
 }
 
 export async function vote(slug) {
-  const res = await fetch(`${API_BASE}/api/candidates/${slug}/vote`, { method: 'POST' })
+  const res = await fetch(`${API_ENDPOINTS}/api/candidates/${slug}/vote`, { method: 'POST' })
   if (!res.ok) {
     const msg = await res.text()
     throw new Error(msg || 'Vote failed')
@@ -22,7 +23,7 @@ export async function vote(slug) {
 }
 
 export async function payAndVote(slug, paymentData) {
-  const res = await fetch(`${API_BASE}/api/candidates/${slug}/pay`, {
+  const res = await fetch(`${API_ENDPOINTS}/api/candidates/${slug}/pay`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(paymentData)
@@ -35,7 +36,7 @@ export async function payAndVote(slug, paymentData) {
 }
 
 export function wsConnect(onMessage) {
-  const url = (API_BASE.replace('http', 'ws')) + '/ws'
+  const url = (API_ENDPOINTS.replace('http', 'ws')) + '/ws'
   const ws = new WebSocket(url)
   ws.onmessage = (ev) => {
     try { onMessage(JSON.parse(ev.data)) } catch {}

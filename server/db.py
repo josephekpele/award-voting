@@ -4,8 +4,8 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # <- IMPORTANT: +psycopg et localhost
-    DATABASE_URL: str = "postgresql://postgres:josephEK99@localhost:5432/award_voting?sslmode=disable&connect_timeout=20"
-    # DATABASE_URL: str = "postgresql://postgres:postgres@172.17.0.1:5432/award_voting"
+    # DATABASE_URL: str = "postgresql://postgres:josephEK99@localhost:5432/award_voting?sslmode=disable&connect_timeout=20"
+    DATABASE_URL: str = "postgresql://joseph:josephEK99@172.17.0.1:5432/award_voting"
 
 settings = Settings()
 

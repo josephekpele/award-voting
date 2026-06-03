@@ -6,9 +6,7 @@ import PaymentPage from './PaymentPage'
 import Galerie from './Galerie'
 import Inscription from './Inscription'
 import Contact from './Contact'
-
-// API base (doit matcher api.js)
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000'
+import { API_ENDPOINTS } from './config';
 
 import './styles.css'
 
@@ -46,7 +44,7 @@ function Home() {
     const pageSize = 15
     
     // Page d'accueil : on affiche uniquement les candidats de l'année en cours.
-    fetch(`${API_BASE}/api/candidates?year=${currentYear}&page=1&page_size=${pageSize}`)
+    fetch(`${API_ENDPOINTS}/api/candidates?year=${currentYear}&page=1&page_size=${pageSize}`)
 
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch candidates')
@@ -69,7 +67,7 @@ function Home() {
     const currentYear = new Date().getFullYear()
 
     // Charger les stats du vote
-    fetch(`${API_BASE}/api/award-stats?year=${currentYear}`)
+    fetch(`${API_ENDPOINTS}/api/award-stats?year=${currentYear}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch award stats')
         return res.json()
@@ -158,7 +156,7 @@ function Home() {
             {candidateList.slice(0, 3).map((item) => (
               <div key={item.rank} className={`podium-card rank-${item.rank}`}>
                 <div className="podium-image">
-                  <img src={`${API_BASE}${item.photo_url}`} alt={item.name} />
+                  <img src={`${API_ENDPOINTS}${item.photo_url}`} alt={item.name} />
                   <div className="rank-badge">{item.rank}</div>
                   {item.rank === 1 && <div className="leader-badge">Leader</div>}
                 </div>
@@ -209,7 +207,7 @@ function Home() {
               {candidateList.map((candidate) => (
                 <div key={candidate.slug || candidate.name} className="candidate-card">
                   <div className="candidate-image">
-                    <img src={`${API_BASE}${candidate.photo_url}`} alt={candidate.name} />
+                    <img src={`${API_ENDPOINTS}${candidate.photo_url}`} alt={candidate.name} />
                     <div className="candidate-label">{candidate.label || candidate.role || 'Candidat N°'} {candidate.number}</div>
                   </div>
                   <div className="candidate-body">
