@@ -90,7 +90,9 @@ jobs:
             docker run -d \
               --name award_voting_server \
               --network award_net \
+              -p 8003:8003 \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e PORT=8003 \
               --restart=unless-stopped \
               award_voting_server:latest
 
