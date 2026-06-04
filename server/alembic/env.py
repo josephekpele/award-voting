@@ -14,11 +14,12 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# 🔧 Lire DATABASE_URL depuis l'environnement (pour Docker/VPS)
-# Priorité: env var > .env > alembic.ini
-database_url = os.getenv("DATABASE_URL")
-if database_url:
-    config.set_main_option("sqlalchemy.url", database_url)
+# 🔧 Lire DATABASE_URL depuis les settings de l'application
+# Cela garantit qu'Alembic et FastAPI utilisent la même config.
+from db import Settings
+
+settings = Settings()
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
