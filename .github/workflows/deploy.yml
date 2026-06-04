@@ -91,7 +91,6 @@ jobs:
               --name award_voting_server \
               --network award_net \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-              -p 8003:8003 \
               --restart=unless-stopped \
               award_voting_server:latest
 

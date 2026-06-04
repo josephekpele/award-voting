@@ -19,6 +19,8 @@ if config.config_file_name is not None:
 from db import Settings
 
 settings = Settings()
+# Utilise strictement DATABASE_URL de l'environnement/container.
+# Si absent, Alembic.ini prendra le relais.
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # add your model's MetaData object here
