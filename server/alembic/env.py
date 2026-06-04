@@ -67,8 +67,10 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    # Force: utiliser UNIQUEMENT l'URL définie dans config (qui vient de DATABASE_URL)
+    # et éviter toute autre valeur potientielle issue d'alembic.ini.
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        {"sqlalchemy.url": config.get_main_option("sqlalchemy.url")},
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

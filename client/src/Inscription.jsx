@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { API_ENDPOINTS } from './config';
+import { API_BASE_URL } from './config';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -49,7 +49,7 @@ function Inscription() {
     if (photo) submitData.append('photo', photo);
 
     try {
-      const response = await fetch(API_ENDPOINTS.inscription, {
+      const response = await fetch(API_BASE_URL.inscription, {
         method: 'POST',
         body: submitData,
       });
