@@ -1,14 +1,24 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
-    # <- IMPORTANT: +psycopg et localhost
-    # DATABASE_URL: str = "postgresql://postgres:josephEK99@localhost:5432/award_voting?sslmode=disable&connect_timeout=20"
-    DATABASE_URL: str = "postgresql://joseph:josephEK99@172.17.0.1:5432/award_voting"
+    """
+    Charge les variables d'environnement depuis:
+    1. Variables d'environnement (secrets Docker/VPS) - PRIORITÉ 1
+    2. Fichier .env dans le dossier server/ - PRIORITÉ 2
+    3. Doit être défini, sinon lève une erreur
+    """
+    DATABASE_URL: str  # Obligatoire, doit venir de l'env ou .env
+    
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(os.path.dirname(__file__), '.env'),
+        env_file_encoding='utf-8'
+    )
 
 settings = Settings()
 

@@ -1,6 +1,27 @@
 # Ekklesia Impact Award 2025 API (FastAPI)
 
 
+## Configuration Database
+
+### Development Local
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` with your local PostgreSQL credentials:
+   ```
+   DATABASE_URL=postgresql://username:password@localhost:5432/award_voting
+   ```
+
+### Production (VPS)
+The database URL is injected via GitHub Secrets → Docker environment variable:
+- GitHub: `Settings → Secrets → DATABASE_URL`
+- GitHub Actions: reads `secrets.DATABASE_URL` and passes via `-e DATABASE_URL="..."`
+- Docker: maps to FastAPI container as environment variable
+- Application: `pydantic_settings` loads from environment (priority 1)
+
+
 ## Install & Run
 
 
