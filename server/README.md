@@ -3,6 +3,36 @@
 
 ## Configuration Database
 
+### 🔧 Système de configuration
+
+DATABASE_URL charge depuis (ordre de priorité):
+1. **Variable d'environnement** `DATABASE_URL` (Docker secrets/VPS) ✅ PRIORITÉ 1
+2. **Fichier `.env`** (développement local)
+3. Pas de valeur par défaut → erreur si rien n'est défini
+
+```python
+# server/db.py
+class Settings(BaseSettings):
+    DATABASE_URL: str  # Doit être défini depuis env ou .env
+    model_config = SettingsConfigDict(
+        env_file='.env'  # Fallback sur .env
+    )
+```
+
+### 🎯 Alembic (Migrations)
+
+**IMPORTANT**: `alembic/env.py` lit aussi `DATABASE_URL` depuis l'environnement (même priorité que FastAPI):
+```python
+# alembic/env.py
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    config.set_main_option("sqlalchemy.url", database_url)
+```
+
+Cela signifie:
+- ✅ En VPS: `-e DATABASE_URL="...172.17.0.1..."` → Alembic l'utilise
+- ✅ En local: `.env` avec localhost → Alembic l'utilise
+
 ### Development Local
 1. Copy `.env.example` to `.env`:
    ```bash
@@ -16,10 +46,10 @@
 
 ### Production (VPS)
 The database URL is injected via GitHub Secrets → Docker environment variable:
-- GitHub: `Settings → Secrets → DATABASE_URL`
+- GitHub: `Settings → Secrets → DATABASE_URL` = `postgresql://joseph:josephEK99@172.17.0.1:5432/award_voting`
 - GitHub Actions: reads `secrets.DATABASE_URL` and passes via `-e DATABASE_URL="..."`
-- Docker: maps to FastAPI container as environment variable
-- Application: `pydantic_settings` loads from environment (priority 1)
+- Entrypoint: `alembic/env.py` reads from environment variable
+- FastAPI: `pydantic_settings` also reads from environment variable
 
 
 ## Install & Run
