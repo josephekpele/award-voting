@@ -3,6 +3,7 @@ set -e
 
 echo "🔄 Running Alembic migrations..."
 cd /app/server
+export PYTHONPATH=/app
 alembic upgrade head
 
 echo "✅ Migrations completed. Starting application..."
